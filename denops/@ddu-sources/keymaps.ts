@@ -7,11 +7,9 @@ import {
 import { Denops } from "https://deno.land/x/ddu_vim@v3.8.1/deps.ts";
 import { ActionData } from "https://deno.land/x/ddu_kind_file@v0.3.2/file.ts";
 import {
-  nvim_buf_get_keymap,
   nvim_get_keymap,
 } from "https://deno.land/x/denops_std@v5.2.0/function/nvim/mod.ts";
-import { echoerr } from "https://deno.land/x/denops_std@v5.0.1/helper/mod.ts";
-
+import { execute } from "https://deno.land/x/denops_std@v5.2.0/helper/mod.ts";
 type Params = Record<never, never>;
 
 export class Source extends BaseSource<Params> {
@@ -25,6 +23,7 @@ export class Source extends BaseSource<Params> {
   }): ReadableStream<Item<ActionData>[]> {
     return new ReadableStream({
       async start(controller) {
+        const host = args.denops.meta.host;
         const keymapItems = async () => {
           const modes = [
             "",
@@ -48,12 +47,13 @@ export class Source extends BaseSource<Params> {
             "nos",
           ];
           let items: Item<ActionData>[] = [];
-          for (const m of modes) {
-            // コマンド毎の一覧を取得
-            const keymaps = await neovim_get_keymaps(args.denops, m);
-            items = items.concat(keymaps);
-          }
-          // removing duplicate items
+          if (host == "nvim") {
+            for (const m of modes) {
+              // コマンド毎の一覧を取得
+              const keymaps = await neovim_get_keymaps(args.denops, m);
+              items = items.concat(keymaps);
+            }
+          } // removing duplicate items
           items = items.filter((value, index, self) =>
             self.findIndex((v) => v.word === value.word) === index
           );
@@ -75,8 +75,8 @@ async function neovim_get_keymaps(
   denops: Denops,
   mode: string,
 ): Promise<Item<ActionData>[]> {
-  let keymaps = await nvim_get_keymap(denops, mode);
-  let items: Item<ActionData>[] = [];
+  const keymaps = await nvim_get_keymap(denops, mode);
+  const items: Item<ActionData>[] = [];
   for (const keymap of keymaps) {
     const words = keymap.mode + " " + keymap.lhs + " " + keymap.rhs + " " +
       keymap.desc;
