@@ -3,13 +3,11 @@ import {
   DduOptions,
   Item,
   SourceOptions,
-} from "https://deno.land/x/ddu_vim@v3.8.1/types.ts";
+} from "https://deno.land/x/ddu_vim@v3.10.1/types.ts";
 import { Denops } from "https://deno.land/x/ddu_vim@v3.8.1/deps.ts";
 import { ActionData } from "https://deno.land/x/ddu_kind_file@v0.3.2/file.ts";
-import {
-  nvim_get_keymap,
-} from "https://deno.land/x/denops_std@v5.2.0/function/nvim/mod.ts";
-import { execute } from "https://deno.land/x/denops_std@v5.2.0/helper/mod.ts";
+import { nvim_get_keymap } from "https://deno.land/x/denops_std@v5.2.0/function/nvim/mod.ts";
+
 type Params = Record<never, never>;
 
 export class Source extends BaseSource<Params> {
@@ -54,14 +52,13 @@ export class Source extends BaseSource<Params> {
               items = items.concat(keymaps);
             }
           } // removing duplicate items
-          items = items.filter((value, index, self) =>
-            self.findIndex((v) => v.word === value.word) === index
+          items = items.filter(
+            (value, index, self) =>
+              self.findIndex((v) => v.word === value.word) === index,
           );
           return items;
         };
-        controller.enqueue(
-          await keymapItems(),
-        );
+        controller.enqueue(await keymapItems());
         controller.close();
       },
     });
